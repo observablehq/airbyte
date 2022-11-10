@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
-public class AirbyteMessageMigrationV1_1_0 implements AirbyteMessageMigration<AirbyteMessage, io.airbyte.protocol.models.v0.AirbyteMessage> {
+public class AirbyteMessageMigrationV1 implements AirbyteMessageMigration<AirbyteMessage, io.airbyte.protocol.models.v0.AirbyteMessage> {
 
   private static final Set<String> PRIMITIVE_TYPES = ImmutableSet.of(
     "string",
@@ -231,11 +231,12 @@ public class AirbyteMessageMigrationV1_1_0 implements AirbyteMessageMigration<Ai
 
   @Override
   public Version getPreviousVersion() {
-    return new Version("1.0.0");
+    // TODO use correct version
+    return new Version("0.0.0");
   }
 
   @Override
   public Version getCurrentVersion() {
-    return new Version("1.1.0");
+    return new Version("1.0.0");
   }
 }
