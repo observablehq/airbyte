@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2022 Airbyte, Inc., all rights reserved.
+ */
+
 package io.airbyte.protocol.models;
 
 import com.google.common.collect.ImmutableMap;
@@ -11,8 +15,7 @@ public class JsonSchemaReferenceTypes {
       "string",
       "number",
       "integer",
-      "boolean"
-  );
+      "boolean");
   public static final Map<String, String> AIRBYTE_TYPE_TO_REFERENCE_TYPE = ImmutableMap.of(
       "timestamp_with_timezone", "WellKnownTypes.json#definitions/TimestampWithTimezone",
       "timestamp_without_timezone", "WellKnownTypes.json#definitions/TimestampWithoutTimezone",
@@ -23,6 +26,6 @@ public class JsonSchemaReferenceTypes {
       "string", "WellKnownTypes.json#definitions/String",
       "number", "WellKnownTypes.json#definitions/Number",
       "boolean", "WellKnownTypes.json#definitions/Boolean",
-      "date", "WellKnownTypes.json#definitions/Date"
-  );
+      "date", "WellKnownTypes.json#definitions/Date");
+
 }
