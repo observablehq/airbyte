@@ -2,6 +2,7 @@ import React from "react";
 import { FormattedMessage } from "react-intl";
 
 import { PillSelect } from "components/ui/PillSelect";
+import { PillButtonVariant } from "components/ui/PillSelect/PillButton";
 import { Text } from "components/ui/Text";
 import { Tooltip } from "components/ui/Tooltip";
 
@@ -17,6 +18,7 @@ interface StreamPathSelectBaseProps {
   paths: Path[];
   pathType: "required" | "sourceDefined";
   placeholder?: React.ReactNode;
+  variant?: PillButtonVariant;
 }
 
 interface StreamPathSelectMultiProps {
@@ -64,6 +66,7 @@ export const StreamPathSelect: React.FC<PathPopoutProps> = (props) => {
         const finalValues = Array.isArray(options) ? options.map((op) => op.value) : options.value;
         props.onPathChange(finalValues);
       }}
+      variant={props.variant}
     />
   );
 };
