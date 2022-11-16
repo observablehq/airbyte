@@ -15,6 +15,8 @@ import io.airbyte.commons.protocol.migrations.AirbyteMessageMigrationV0;
 import io.airbyte.commons.protocol.migrations.AirbyteMessageMigrationV1;
 import io.airbyte.commons.protocol.serde.AirbyteMessageV0Deserializer;
 import io.airbyte.commons.protocol.serde.AirbyteMessageV0Serializer;
+import io.airbyte.commons.protocol.serde.AirbyteMessageV1Deserializer;
+import io.airbyte.commons.protocol.serde.AirbyteMessageV1Serializer;
 import io.airbyte.commons.temporal.TemporalUtils;
 import io.airbyte.commons.temporal.sync.OrchestratorConstants;
 import io.airbyte.config.Configs;
@@ -259,8 +261,8 @@ public class ContainerOrchestratorApp {
   // This should be replaced by a simple injection once we migrated the orchestrator to the micronaut
   private static AirbyteMessageSerDeProvider getAirbyteMessageSerDeProvider() {
     final AirbyteMessageSerDeProvider serDeProvider = new AirbyteMessageSerDeProvider(
-        List.of(new AirbyteMessageV0Deserializer()),
-        List.of(new AirbyteMessageV0Serializer()));
+        List.of(new AirbyteMessageV0Deserializer(), new AirbyteMessageV1Deserializer()),
+        List.of(new AirbyteMessageV0Serializer(), new AirbyteMessageV1Serializer()));
     serDeProvider.initialize();
     return serDeProvider;
   }
