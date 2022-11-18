@@ -3,6 +3,9 @@
 #
 
 
-from .source import SourceMonday
+# from .source import SourceMonday
+from .source_lc import SourceMonday
+from .graphql_request_options_provider import GraphQLRequestOptionsProvider
+from .pagination_workaround import PageIncrementWorkaround
 
-__all__ = ["SourceMonday"]
+__all__ = ["SourceMonday", "GraphQLRequestOptionsProvider", "PageIncrementWorkaround"]
