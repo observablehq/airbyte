@@ -17,20 +17,20 @@ public class JsonSchemaReferenceTypes {
       "integer",
       "boolean");
 
-  public static final String STRING_REFERENCE = "WellKnownTypes.json#definitions/String";
-  public static final String BINARY_DATA_REFERENCE = "WellKnownTypes.json#definitions/BinaryData";
-  public static final String NUMBER_REFERENCE = "WellKnownTypes.json#definitions/Number";
-  public static final String INTEGER_REFERENCE = "WellKnownTypes.json#definitions/Integer";
-  public static final String BOOLEAN_REFERENCE = "WellKnownTypes.json#definitions/Boolean";
-  public static final String DATE_REFERENCE = "WellKnownTypes.json#definitions/Date";
-  public static final String TIMESTAMP_WITH_TIMEZONE_REFERENCE = "WellKnownTypes.json#definitions/TimestampWithTimezone";
-  public static final String TIMESTAMP_WITHOUT_TIMEZONE_REFERENCE = "WellKnownTypes.json#definitions/TimestampWithoutTimezone";
-  public static final String TIME_WITH_TIMEZONE_REFERENCE = "WellKnownTypes.json#definitions/TimeWithTimezone";
-  public static final String TIME_WITHOUT_TIMEZONE_REFERENCE = "WellKnownTypes.json#definitions/TimeWithoutTimezone";
+  public static final String STRING_REFERENCE = "WellKnownTypes.json#/definitions/String";
+  public static final String BINARY_DATA_REFERENCE = "WellKnownTypes.json#/definitions/BinaryData";
+  public static final String NUMBER_REFERENCE = "WellKnownTypes.json#/definitions/Number";
+  public static final String INTEGER_REFERENCE = "WellKnownTypes.json#/definitions/Integer";
+  public static final String BOOLEAN_REFERENCE = "WellKnownTypes.json#/definitions/Boolean";
+  public static final String DATE_REFERENCE = "WellKnownTypes.json#/definitions/Date";
+  public static final String TIMESTAMP_WITH_TIMEZONE_REFERENCE = "WellKnownTypes.json#/definitions/TimestampWithTimezone";
+  public static final String TIMESTAMP_WITHOUT_TIMEZONE_REFERENCE = "WellKnownTypes.json#/definitions/TimestampWithoutTimezone";
+  public static final String TIME_WITH_TIMEZONE_REFERENCE = "WellKnownTypes.json#/definitions/TimeWithTimezone";
+  public static final String TIME_WITHOUT_TIMEZONE_REFERENCE = "WellKnownTypes.json#/definitions/TimeWithoutTimezone";
 
   /**
    * This is primarily useful for migrating from protocol v0 to v1. It provides a mapping from the old
-   * style {airbyte_type: foo} to new style {$ref: WellKnownTypes#definitions/Foo}.
+   * style {airbyte_type: foo} to new style {$ref: WellKnownTypes#/definitions/Foo}.
    */
   public static final Map<String, String> AIRBYTE_TYPE_TO_REFERENCE_TYPE = ImmutableMap.of(
       "timestamp_with_timezone", TIMESTAMP_WITH_TIMEZONE_REFERENCE,
