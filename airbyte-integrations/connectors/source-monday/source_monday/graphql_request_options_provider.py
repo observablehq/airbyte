@@ -30,6 +30,8 @@ class GraphQLRequestOptionsProvider(CustomOptionsProviderMixin, InterpolatedRequ
             return schema_dict["properties"]
 
     def get_fields(self, x: dict):
+        if self.name == "teams" and self.config.get("debug"):
+            return "id,name,picture_url,users(limit:100){id}"
         query = ','.join([f'{col}' + (f'{{{self.get_fields(x[col]["properties"])}}}' if 'properties' in x[col] else '') for col in x])
         return query
 

@@ -38,7 +38,7 @@
     "parent_item": {
       "type": ["null", "object"],
       "properties": {
-        "id": { "type": ["null", "integer"] }
+        "id": { "type": ["null", "string"] }
       }
     },
     "state": { "type": ["null", "string"] },
