@@ -25,8 +25,8 @@ definitions:
         - predicate: "{{ 'error_code' in response and response['error_code'] == 'ComplexityException' }}"
           action: RETRY
       backoff_strategies:
-        - type: ExponentialBackoffStrategy
-          factor: 60
+        - type: ConstantBackoffStrategy
+          backoff_time_in_seconds: 60
   paginator:
     type: "DefaultPaginator"
     url_base: "https://api.monday.com/v2"
