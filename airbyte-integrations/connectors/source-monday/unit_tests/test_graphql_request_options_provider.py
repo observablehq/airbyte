@@ -1,23 +1,35 @@
+import pytest
 from source_monday import GraphQLRequestOptionsProvider
 
 
-def test_get_request_params(mocker):
-    schema = {
-        "key_a": {
-            "type": ["null", "string"],
-            "properties": {
-                "key_a_1": {
-                    "type": ["null", "string"],
-                    "properties": {
-                        "key_a_2": {"type": ["null", "string"]}
-                    }
+nested_schema = {
+    "key_a": {
+        "type": ["null", "string"],
+        "properties": {
+            "key_a_1": {
+                "type": ["null", "string"],
+                "properties": {
+                    "key_a_2": {"type": ["null", "string"]}
                 }
             }
-        },
-        "key_b": {"type": ["null", "string"]},
-        "key_c": {"type": ["null", "string"]},
-    }
-    mocker.patch.object(GraphQLRequestOptionsProvider, "get_schema_root_properties", return_value=schema)
+        }
+    },
+    "key_b": {"type": ["null", "string"]},
+    "key_c": {"type": ["null", "string"]},
+}
+
+@pytest.mark.parametrize(
+    ("input_schema", "graphql_query"),
+    [
+        pytest.param(
+            nested_schema,
+            {"query": "query { boards (limit:100,page:2) { items(limit:100){ key_a{key_a_1{key_a_2}},key_b,key_c } } }"},
+            id="test_get_request_params_produces_graphql_string_for_items"
+        )
+    ]
+)
+def test_get_request_params(mocker, input_schema, graphql_query):
+    mocker.patch.object(GraphQLRequestOptionsProvider, "_get_schema_root_properties", return_value=input_schema)
     provider = GraphQLRequestOptionsProvider(
         limit="{{ options['items_per_page'] }}",
         options={"name": "items", "items_per_page": 100}
@@ -26,4 +38,4 @@ def test_get_request_params(mocker):
         stream_state=mocker.MagicMock(),
         stream_slice=mocker.MagicMock(),
         next_page_token={"next_page_token": 2}
-    ) == {"query": "query { items (limit:100,page:2) { key_a{key_a_1{key_a_2}},key_b,key_c } }"}
+    ) == graphql_query

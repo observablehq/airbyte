@@ -28,7 +28,7 @@ class PageIncrementWorkaround(PaginationStrategy, JsonSchemaMixin):
 
         self.page_size = InterpolatedString.create(self.page_size, options=options)
 
-    def eval_page_size(self, possible_record_len: int):
+    def _eval_page_size(self, possible_record_len: int):
         if self._page_size:
             return self._page_size
         page_size = self.page_size.eval(self.config)
@@ -39,14 +39,13 @@ class PageIncrementWorkaround(PaginationStrategy, JsonSchemaMixin):
         return self._page_size
 
     def next_page_token(self, response: requests.Response, last_records: List[Mapping[str, Any]]) -> Optional[Any]:
-        page_size = self.eval_page_size(len(last_records))
+        page_size = self._eval_page_size(len(last_records))
         if not page_size:
             return None
-        elif len(last_records) < page_size:
+        if len(last_records) < page_size:
             return None
-        else:
-            self._page += 1
-            return self._page
+        self._page += 1
+        return self._page
 
     def reset(self):
         self._page = 1

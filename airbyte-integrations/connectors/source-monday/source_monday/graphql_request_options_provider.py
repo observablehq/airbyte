@@ -23,16 +23,16 @@ class GraphQLRequestOptionsProvider(CustomOptionsProviderMixin, InterpolatedRequ
         self.limit = InterpolatedString.create(self.limit, options=options)
         self.name = options.get('name', '').lower()
 
-    def get_schema_root_properties(self):
+    def _get_schema_root_properties(self):
         schema_path = os.path.join(os.path.abspath(os.curdir), "source_monday", f"schemas/{self.name}.json")
         with open(schema_path) as f:
             schema_dict = json.load(f)
             return schema_dict["properties"]
 
-    def get_fields(self, x: dict):
+    def _get_query_by_stream_properties(self, props: dict):
         if self.name == "teams" and self.config.get("debug"):
             return "id,name,picture_url,users(limit:100){id}"
-        query = ','.join([f'{col}' + (f'{{{self.get_fields(x[col]["properties"])}}}' if 'properties' in x[col] else '') for col in x])
+        query = ','.join([f'{col}' + (f'{{{self._get_query_by_stream_properties(props[col]["properties"])}}}' if 'properties' in props[col] else '') for col in props])
         return query
 
     def get_request_params(self, *, stream_state: Optional[StreamState] = None, stream_slice: Optional[StreamSlice] = None,
@@ -47,7 +47,7 @@ class GraphQLRequestOptionsProvider(CustomOptionsProviderMixin, InterpolatedRequ
         graphql_query = ",".join([f"{k}:{v}" for k, v in graphql_params.items()])
         # Monday uses a query string to pass in environments
         if self.name == "items":
-            params = {"query": f"query {{ boards ({graphql_query}) {{ {self.name}(limit:100){{ {self.get_fields(self.get_schema_root_properties())} }} }} }}"}
+            params = {"query": f"query {{ boards ({graphql_query}) {{ {self.name}(limit:100){{ {self._get_query_by_stream_properties(self._get_schema_root_properties())} }} }} }}"}
         else:
-            params = {"query": f"query {{ {self.name} ({graphql_query}) {{ {self.get_fields(self.get_schema_root_properties())} }} }}"}
+            params = {"query": f"query {{ {self.name} ({graphql_query}) {{ {self._get_query_by_stream_properties(self._get_schema_root_properties())} }} }}"}
         return params

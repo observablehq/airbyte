@@ -1,6 +1,7 @@
 # See [Source Acceptance Tests](https://docs.airbyte.com/connector-development/testing-connectors/source-acceptance-tests-reference)
 # for more information about how to configure these tests
 connector_image: airbyte/source-monday:dev
+test_strictness_level: high
 acceptance_tests:
   spec:
     tests:
@@ -26,7 +27,6 @@ acceptance_tests:
   basic_read:
     tests:
       - config_path: "secrets/config_api_token.json"
-        configured_catalog_path: "integration_tests/configured_catalog.json"
         expect_records:
           path: "integration_tests/expected_records.txt"
           extra_fields: no
@@ -38,4 +38,5 @@ acceptance_tests:
   full_refresh:
     tests:
       - config_path: "secrets/config_api_token.json"
-        configured_catalog_path: "integration_tests/configured_catalog.json"
+  incremental:
+    bypass_reason: "Incremental syncs are not supported on this connector."
