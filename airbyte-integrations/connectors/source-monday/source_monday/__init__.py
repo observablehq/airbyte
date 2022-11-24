@@ -7,5 +7,6 @@
 from .source_lc import SourceMonday
 from .graphql_request_options_provider import GraphQLRequestOptionsProvider
 from .pagination_workaround import PageIncrementWorkaround
+from .dpath_string_extractor import DpathStringExtractor
 
-__all__ = ["SourceMonday", "GraphQLRequestOptionsProvider", "PageIncrementWorkaround"]
+__all__ = ["SourceMonday", "GraphQLRequestOptionsProvider", "PageIncrementWorkaround", "DpathStringExtractor"]

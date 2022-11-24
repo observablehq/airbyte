@@ -46,5 +46,8 @@ class GraphQLRequestOptionsProvider(CustomOptionsProviderMixin, InterpolatedRequ
 
         graphql_query = ",".join([f"{k}:{v}" for k, v in graphql_params.items()])
         # Monday uses a query string to pass in environments
-        params = {"query": f"query {{ {self.name} ({graphql_query}) {{ {self.get_fields(self.get_schema_root_properties())} }} }}"}
+        if self.name == "items":
+            params = {"query": f"query {{ boards ({graphql_query}) {{ {self.name}(limit:100){{ {self.get_fields(self.get_schema_root_properties())} }} }} }}"}
+        else:
+            params = {"query": f"query {{ {self.name} ({graphql_query}) {{ {self.get_fields(self.get_schema_root_properties())} }} }}"}
         return params

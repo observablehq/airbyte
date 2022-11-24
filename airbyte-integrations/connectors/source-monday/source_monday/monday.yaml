@@ -53,10 +53,18 @@ definitions:
         type: NoPagination
   items_stream:
     $ref: "*ref(definitions.base_stream)"
+    retriever:
+      $ref: "*ref(definitions.retriever)"
+      record_selector:
+        type: RecordSelector
+        extractor:
+          type: DpathExtractor
+          field_pointer: "/data/boards/*/items/*"
+          class_name: "source_monday.DpathStringExtractor"
     $options:
       name: "items"
       path: ""
-      items_per_page: 100
+      items_per_page: 1
   boards_stream:
     $ref: "*ref(definitions.base_stream)"
     $options:
