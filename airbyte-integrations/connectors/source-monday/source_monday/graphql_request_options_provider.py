@@ -9,13 +9,10 @@ from airbyte_cdk.sources.declarative.types import StreamState, StreamSlice
 
 
 @dataclass
-class CustomOptionsProviderMixin:
-    limit: Union[InterpolatedString, str] = None
-
-
-@dataclass
-class GraphQLRequestOptionsProvider(CustomOptionsProviderMixin, InterpolatedRequestOptionsProvider):
+class GraphQLRequestOptionsProvider(InterpolatedRequestOptionsProvider):
     NEXT_PAGE_TOKEN_FIELD_NAME = "next_page_token"
+
+    limit: Union[InterpolatedString, str, int] = None
 
     def __post_init__(self, options: Mapping[str, Any]):
         super(GraphQLRequestOptionsProvider, self).__post_init__(options)

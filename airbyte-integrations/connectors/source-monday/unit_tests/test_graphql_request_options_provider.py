@@ -35,7 +35,7 @@ def test_get_request_params(mocker, input_schema, graphql_query):
         options={"name": "items", "items_per_page": 100}
     )
     assert provider.get_request_params(
-        stream_state=mocker.MagicMock(),
-        stream_slice=mocker.MagicMock(),
+        stream_state={},
+        stream_slice={},
         next_page_token={"next_page_token": 2}
     ) == graphql_query
