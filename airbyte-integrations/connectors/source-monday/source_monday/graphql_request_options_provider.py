@@ -42,7 +42,7 @@ class GraphQLRequestOptionsProvider(CustomOptionsProviderMixin, InterpolatedRequ
         if limit:
             graphql_params["limit"] = limit
         if next_page_token:
-            graphql_params.update({"page": next_page_token[self.NEXT_PAGE_TOKEN_FIELD_NAME]})
+            graphql_params["page"] = next_page_token[self.NEXT_PAGE_TOKEN_FIELD_NAME]
 
         graphql_query = ",".join([f"{k}:{v}" for k, v in graphql_params.items()])
         # Monday uses a query string to pass in environments

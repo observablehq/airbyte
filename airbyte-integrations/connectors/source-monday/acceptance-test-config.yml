@@ -18,6 +18,9 @@ acceptance_tests:
         status: "failed"
   discovery:
     tests:
+      - config_path: "secrets/config.json"
+        backward_compatibility_tests_config:
+          disable_for_version: "0.2.0"
       - config_path: "secrets/config_api_token.json"
         backward_compatibility_tests_config:
           disable_for_version: "0.2.0"
@@ -27,6 +30,15 @@ acceptance_tests:
   basic_read:
     tests:
       - config_path: "secrets/config_api_token.json"
+        expect_records:
+          path: "integration_tests/expected_records.txt"
+          extra_fields: no
+          exact_order: no
+          extra_records: yes
+        empty_streams:
+          - name: teams
+            bypass_reason: "unable to populate"
+      - config_path: "secrets/config_oauth.json"
         expect_records:
           path: "integration_tests/expected_records.txt"
           extra_fields: no
