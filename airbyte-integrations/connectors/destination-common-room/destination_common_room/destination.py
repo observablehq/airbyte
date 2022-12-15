@@ -3,6 +3,7 @@
 #
 
 
+import json
 from typing import Any, Iterable, Mapping, Optional
 
 import requests
@@ -136,10 +137,13 @@ class DestinationCommonRoom(Destination):
         :return: AirbyteConnectionStatus indicating a Success or Failure
         """
         try:
-            # TODO: all configured output fields should exist
+            configured = set(json.loads(config["custom_fields"]).values())
             fields = CustomFields(config["bearer_token"])
-            for field in fields.read_records("full_refresh"):
-                print("field", field)
+            existing = set(f["name"]
+                           for f in fields.read_records("full_refresh"))
+            misconfigured = configured - existing
+            if len(misconfigured) > 0:
+                return AirbyteConnectionStatus(status=Status.FAILED, message=f"Misconfigured fields {repr(set(misconfigured))} not present in {repr(existing)}")
             return AirbyteConnectionStatus(status=Status.SUCCEEDED)
         except Exception as e:
             return AirbyteConnectionStatus(status=Status.FAILED, message=f"An exception occurred: {repr(e)}")
