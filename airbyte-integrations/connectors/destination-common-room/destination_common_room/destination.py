@@ -32,13 +32,15 @@ class DestinationCommonRoom(Destination):
         :return: Iterable of AirbyteStateMessages wrapped in AirbyteMessage structs
         """
         email_field = config["email_field"]
-        member_fields = json.loads(config["member_fields"] or "{}")
+        member_fields = [
+            (f["source"], f["api"]) for f in config["member_fields"]
+        ]
 
         client = CommonRoomClient(config["bearer_token"])
         existing = {f["name"]: f for f in client.fields()}
-        custom_fields = json.loads(config["custom_fields"] or "{}")
-        for [source, api] in custom_fields.items():
-            custom_fields[source] = existing[api]
+        custom_fields = [
+            (f["source"], existing[f["api"]]) for f in config["custom_fields"]
+        ]
 
         for message in input_messages:
             if message.type == Type.STATE:
@@ -47,9 +49,9 @@ class DestinationCommonRoom(Destination):
                 data = message.record.data
                 email = data[email_field]
                 client.member(email, {
-                    api: data[source] for [source, api] in member_fields.items()
+                    api: data[source] for (source, api) in member_fields
                 })
-                for [source, field] in custom_fields.items():
+                for (source, field) in custom_fields:
                     client.memberField(email, field, data[source])
 
     def check(self, logger: AirbyteLogger, config: Mapping[str, Any]) -> AirbyteConnectionStatus:
@@ -67,8 +69,7 @@ class DestinationCommonRoom(Destination):
         try:
             client = CommonRoomClient(config["bearer_token"])
             existing = set(f["name"] for f in client.fields())
-            configured = set(json.loads(
-                config["custom_fields"] or "{}").values())
+            configured = set(f["api"] for f in config["custom_fields"])
             misconfigured = configured - existing
             if len(misconfigured) > 0:
                 return AirbyteConnectionStatus(status=Status.FAILED, message=f"Misconfigured fields {repr(set(misconfigured))} not present in {repr(existing)}")

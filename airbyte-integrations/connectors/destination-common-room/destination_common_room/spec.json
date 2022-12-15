@@ -8,27 +8,82 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Destination Common Room",
     "type": "object",
-    "required": ["bearer_token", "email_field"],
+    "required": [
+      "bearer_token",
+      "email_field",
+      "member_fields",
+      "custom_fields"
+    ],
     "additionalProperties": false,
     "properties": {
       "bearer_token": {
+        "title": "Bearer token",
         "type": "string",
         "description": "Community API JWT. See https://api.commonroom.io/docs/community.html#section/Authentication.",
-        "airbyte_secret": true
+        "airbyte_secret": true,
+        "order": 0
       },
       "email_field": {
+        "title": "Email field",
         "type": "string",
-        "description": "Email field."
+        "description": "The field representing a user's email address.",
+        "order": 1
       },
       "member_fields": {
-        "type": "string",
-        "description": "JSON specification of field mappings to members. See https://api.commonroom.io/docs/community.html#tag/Members.",
-        "multiline": true
+        "title": "Member fields",
+        "type": "array",
+        "description": "A list of fields to map to member fields. See https://api.commonroom.io/docs/community.html#tag/Members.",
+        "order": 2,
+        "default": [],
+        "items": {
+          "type": "object",
+          "required": ["source", "api"],
+          "properties": {
+            "source": {
+              "title": "Source field",
+              "type": "string",
+              "order": 0
+            },
+            "api": {
+              "title": "API field",
+              "order": 1,
+              "enum": [
+                "fullName",
+                "avatarUrl",
+                "description",
+                "socials",
+                "segment",
+                "company",
+                "domain",
+                "title",
+                "role"
+              ]
+            }
+          }
+        }
       },
       "custom_fields": {
-        "type": "string",
-        "description": "JSON specification of field mappings to custom fields.",
-        "multiline": true
+        "title": "Custom fields",
+        "type": "array",
+        "description": "A list of fields to map to custom fields. See https://api.commonroom.io/docs/community.html#tag/Members/paths/~1members~1customFields/get",
+        "order": 3,
+        "default": [],
+        "items": {
+          "type": "object",
+          "required": ["source", "api"],
+          "properties": {
+            "source": {
+              "title": "Source field",
+              "type": "string",
+              "order": 0
+            },
+            "api": {
+              "title": "API field",
+              "type": "string",
+              "order": 1
+            }
+          }
+        }
       }
     }
   }
