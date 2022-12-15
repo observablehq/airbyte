@@ -31,14 +31,26 @@ class DestinationCommonRoom(Destination):
         :param input_messages: The stream of input messages received from the source
         :return: Iterable of AirbyteStateMessages wrapped in AirbyteMessage structs
         """
+        email_field = config["email_field"]
+        member_fields = json.loads(config["member_fields"] or "{}")
+
         client = CommonRoomClient(config["bearer_token"])
-        member_map = {}
-        custom_map = {}
+        existing = {f["name"]: f for f in client.fields()}
+        custom_fields = json.loads(config["custom_fields"] or "{}")
+        for [source, api] in custom_fields.items():
+            custom_fields[source] = existing[api]
+
         for message in input_messages:
             if message.type == Type.STATE:
                 yield message
             elif message.type == Type.RECORD:
-                client.member(message.record)
+                data = message.record.data
+                email = data[email_field]
+                client.member(email, {
+                    api: data[source] for [source, api] in member_fields.items()
+                })
+                for [source, field] in custom_fields.items():
+                    client.memberField(email, field, data[source])
 
     def check(self, logger: AirbyteLogger, config: Mapping[str, Any]) -> AirbyteConnectionStatus:
         """
@@ -55,7 +67,8 @@ class DestinationCommonRoom(Destination):
         try:
             client = CommonRoomClient(config["bearer_token"])
             existing = set(f["name"] for f in client.fields())
-            configured = set(json.loads(config["custom_fields"]).values())
+            configured = set(json.loads(
+                config["custom_fields"] or "{}").values())
             misconfigured = configured - existing
             if len(misconfigured) > 0:
                 return AirbyteConnectionStatus(status=Status.FAILED, message=f"Misconfigured fields {repr(set(misconfigured))} not present in {repr(existing)}")

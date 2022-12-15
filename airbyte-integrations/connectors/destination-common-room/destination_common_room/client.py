@@ -2,7 +2,8 @@
 # Copyright (c) 2022 Airbyte, Inc., all rights reserved.
 #
 
-from typing import Any, Iterable, List, Mapping, Tuple, Union
+from typing import Any, Mapping
+from requests.exceptions import HTTPError
 import requests
 
 
@@ -18,23 +19,27 @@ class CommonRoomClient:
         """
         return self._request("GET", "members/customFields")
 
-    def member(self, data):
+    def member(self, email: str, data: Mapping[str, Any]):
         """
         API docs: https://api.commonroom.io/docs/community.html#operation/createOrUpdateCommunityMember
         """
-        return self._request("POST", "members", {
-            "socials": [{"type": "email", "value": "visnu@observablehq.com"}],
-            # "fullName": "Visnu Pitiyanuvath",
-            # "avatarUrl": "",
-            "description": "Testing",
-            "source": "Recurring import"
-        })
+        return self._request("POST", "members", dict({
+            "socials": [{"type": "email", "value": email}],
+            "source": "Recurring import"},
+            **data
+        ))
 
-    def memberField(self, data):
+    def memberField(self, email: str, field: Mapping[str, Any], value: Any):
         """
         API docs: https://api.commonroom.io/docs/community.html#operation/setMemberCustomFieldValue
+        field comes from fields()
         """
-        return {"socialType": "email", "value": "visnu@observablehq.com", "customFieldId": 0, "customFieldValue": ""}
+        return self._request("POST", "members/customFields", {
+            "socialType": "email",
+            "value": email,
+            "customFieldId": field["id"],
+            "customFieldValue": {"type": field["type"], "value": value}
+        })
 
     def _request_headers(self) -> Mapping[str, Any]:
         return {"Authorization": f"Bearer {self.bearer_token}"} if self.bearer_token else {}
@@ -48,5 +53,7 @@ class CommonRoomClient:
         response = requests.request(
             method=http_method, url=url, headers=headers, json=json)
 
-        response.raise_for_status()
+        if not response.ok:
+            raise HTTPError(response.text, response=response)
+
         return response.json()
