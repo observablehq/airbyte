@@ -9,7 +9,7 @@ import requests
 from airbyte_cdk import AirbyteLogger
 from airbyte_cdk.sources.streams.http import HttpStream
 from airbyte_cdk.destinations import Destination
-from airbyte_cdk.models import AirbyteConnectionStatus, AirbyteMessage, ConfiguredAirbyteCatalog, Status
+from airbyte_cdk.models import AirbyteConnectionStatus, AirbyteMessage, ConfiguredAirbyteCatalog, Status, Type
 
 
 class CommonRoomStream(HttpStream):
@@ -53,6 +53,25 @@ class Member(CommonRoomStream):
     def path(self, **kwargs) -> str:
         return "members"
 
+    def request_body_json(
+        self,
+        stream_state: Mapping[str, Any],
+        stream_slice: Mapping[str, Any] = None,
+        next_page_token: Mapping[str, Any] = None,
+    ) -> Optional[Mapping]:
+        """
+        Override when creating POST/PUT/PATCH requests to populate the body of the request with a JSON payload.
+
+        At the same time only one of the 'request_body_data' and 'request_body_json' functions can be overridden.
+        """
+        return {
+            "socials": [{"type": "email", "value": "visnu@observablehq.com"}],
+            # "fullName": "Visnu Pitiyanuvath",
+            # "avatarUrl": "",
+            "description": "Testing",
+            "source": "Recurring import"
+        }
+
 
 class MemberCustomField(CommonRoomStream):
     """
@@ -62,6 +81,19 @@ class MemberCustomField(CommonRoomStream):
 
     def path(self, **kwargs) -> str:
         return "members/customFields"
+
+    def request_body_json(
+        self,
+        stream_state: Mapping[str, Any],
+        stream_slice: Mapping[str, Any] = None,
+        next_page_token: Mapping[str, Any] = None,
+    ) -> Optional[Mapping]:
+        """
+        Override when creating POST/PUT/PATCH requests to populate the body of the request with a JSON payload.
+
+        At the same time only one of the 'request_body_data' and 'request_body_json' functions can be overridden.
+        """
+        return {"socialType": "email", "value": "visnu@observablehq.com", "customFieldId": 0, "customFieldValue": ""}
 
 
 class DestinationCommonRoom(Destination):
@@ -83,9 +115,13 @@ class DestinationCommonRoom(Destination):
         :param input_messages: The stream of input messages received from the source
         :return: Iterable of AirbyteStateMessages wrapped in AirbyteMessage structs
         """
-        print("hi")
-
-        pass
+        member = Member(config["bearer_token"])
+        for message in input_messages:
+            if message.type == Type.STATE:
+                yield message
+            elif message.type == Type.RECORD:
+                for _ in member.read_records("full_refresh", None, None, message.record):
+                    pass
 
     def check(self, logger: AirbyteLogger, config: Mapping[str, Any]) -> AirbyteConnectionStatus:
         """
@@ -100,11 +136,10 @@ class DestinationCommonRoom(Destination):
         :return: AirbyteConnectionStatus indicating a Success or Failure
         """
         try:
-            # TODO: members/customFields
-            api = CustomFields(config["bearer_token"])
-            for r in api.read_records("full_refresh"):
-                print(r)
-
+            # TODO: all configured output fields should exist
+            fields = CustomFields(config["bearer_token"])
+            for field in fields.read_records("full_refresh"):
+                print("field", field)
             return AirbyteConnectionStatus(status=Status.SUCCEEDED)
         except Exception as e:
             return AirbyteConnectionStatus(status=Status.FAILED, message=f"An exception occurred: {repr(e)}")
