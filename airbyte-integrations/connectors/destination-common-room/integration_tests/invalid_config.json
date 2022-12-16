@@ -1,6 +1,0 @@
-{
-  "bearer_token": "secret",
-  "email_field": "email",
-  "member_fields": "{\"email\": \"email\", \"name\": \"fullName\", \"bio\": \"description\"}",
-  "custom_fields": "{\"pronouns\": \"Pronouns\", \"files_attached\": \"File attached\"}"
-}
