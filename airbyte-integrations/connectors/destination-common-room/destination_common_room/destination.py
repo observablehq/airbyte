@@ -10,6 +10,7 @@ from airbyte_cdk import AirbyteLogger
 from airbyte_cdk.destinations import Destination
 from airbyte_cdk.models import AirbyteConnectionStatus, AirbyteMessage, ConfiguredAirbyteCatalog, Status, Type
 from destination_common_room.client import CommonRoomClient
+from time import sleep
 from requests.exceptions import HTTPError
 
 
@@ -60,6 +61,7 @@ class DestinationCommonRoom(Destination):
                         except HTTPError:
                             # Common Room raises 404 not found soon after
                             # creating a member, so need to retry for a bit.
+                            sleep(1)
                             if attempt == 1:
                                 raise
 
