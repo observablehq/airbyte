@@ -10,6 +10,7 @@ from airbyte_cdk import AirbyteLogger
 from airbyte_cdk.destinations import Destination
 from airbyte_cdk.models import AirbyteConnectionStatus, AirbyteMessage, ConfiguredAirbyteCatalog, Status, Type
 from destination_common_room.client import CommonRoomClient
+from requests.exceptions import HTTPError
 
 
 class DestinationCommonRoom(Destination):
@@ -52,7 +53,15 @@ class DestinationCommonRoom(Destination):
                     api: data[source] for (source, api) in member_fields
                 })
                 for (source, field) in custom_fields:
-                    client.memberField(email, field, data[source])
+                    for attempt in range(8, 0, -1):
+                        try:
+                            client.memberField(email, field, data[source])
+                            break
+                        except HTTPError:
+                            # Common Room raises 404 not found soon after
+                            # creating a member, so need to retry for a bit.
+                            if attempt == 1:
+                                raise
 
     def check(self, logger: AirbyteLogger, config: Mapping[str, Any]) -> AirbyteConnectionStatus:
         """

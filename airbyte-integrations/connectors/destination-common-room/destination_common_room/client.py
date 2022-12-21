@@ -34,12 +34,15 @@ class CommonRoomClient:
         API docs: https://api.commonroom.io/docs/community.html#operation/setMemberCustomFieldValue
         field comes from fields()
         """
-        return self._request("POST", "members/customFields", {
-            "socialType": "email",
-            "value": email,
-            "customFieldId": field["id"],
-            "customFieldValue": {"type": field["type"], "value": value}
-        })
+        if value:
+            # if field["type"] == "date":
+            #     value = parser.parse(value).date().isoformat()
+            return self._request("POST", "members/customFields", {
+                "socialType": "email",
+                "value": email,
+                "customFieldId": field["id"],
+                "customFieldValue": {"type": field["type"], "value": value}
+            })
 
     def _request_headers(self) -> Mapping[str, Any]:
         return {"Authorization": f"Bearer {self.bearer_token}"} if self.bearer_token else {}
