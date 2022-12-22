@@ -8,10 +8,11 @@ from typing import Any, Iterable, Mapping, Optional
 
 from airbyte_cdk import AirbyteLogger
 from airbyte_cdk.destinations import Destination
-from airbyte_cdk.models import AirbyteConnectionStatus, AirbyteMessage, ConfiguredAirbyteCatalog, Status, Type
+from airbyte_cdk.models import AirbyteConnectionStatus, AirbyteMessage, AirbyteLogMessage, Level, ConfiguredAirbyteCatalog, Status, Type
 from destination_common_room.client import CommonRoomClient
 from time import sleep
 from requests.exceptions import HTTPError
+from traceback import TracebackException
 
 
 class DestinationCommonRoom(Destination):
@@ -54,16 +55,22 @@ class DestinationCommonRoom(Destination):
                     api: data.get(source) for (source, api) in member_fields
                 })
                 for (source, field) in custom_fields:
-                    for attempt in range(30, 0, -1):
+                    attempts = 10
+                    for n in range(0, attempts + 1):
                         try:
+                            sleep(2 * n)
                             client.memberField(email, field, data[source])
                             break
-                        except HTTPError:
+                        except HTTPError as e:
                             # Common Room raises 404 not found soon after
-                            # creating a member, so need to retry for a bit.
-                            sleep(2)
-                            if attempt == 1:
-                                raise
+                            # creating a member, so retry for a bit. After all
+                            # attempts (110s), log the issue and move on.
+                            if n == attempts:
+                                log = AirbyteLogMessage(
+                                    level=Level.WARN,
+                                    message=f"Gave up setting custom field {repr(field)} after {n} attempts.",
+                                    stack_trace="".join(TracebackException.from_exception(e).format()))
+                                yield AirbyteMessage(type=Type.LOG, log=log)
 
     def check(self, logger: AirbyteLogger, config: Mapping[str, Any]) -> AirbyteConnectionStatus:
         """
