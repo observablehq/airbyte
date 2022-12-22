@@ -51,7 +51,7 @@ class DestinationCommonRoom(Destination):
                 data = message.record.data
                 email = data[email_field]
                 client.member(email, {
-                    api: data[source] for (source, api) in member_fields
+                    api: data.get(source) for (source, api) in member_fields
                 })
                 for (source, field) in custom_fields:
                     for attempt in range(8, 0, -1):
