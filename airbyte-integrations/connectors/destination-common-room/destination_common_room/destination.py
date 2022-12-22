@@ -54,14 +54,14 @@ class DestinationCommonRoom(Destination):
                     api: data.get(source) for (source, api) in member_fields
                 })
                 for (source, field) in custom_fields:
-                    for attempt in range(8, 0, -1):
+                    for attempt in range(30, 0, -1):
                         try:
                             client.memberField(email, field, data[source])
                             break
                         except HTTPError:
                             # Common Room raises 404 not found soon after
                             # creating a member, so need to retry for a bit.
-                            sleep(1)
+                            sleep(2)
                             if attempt == 1:
                                 raise
 
