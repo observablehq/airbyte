@@ -54,7 +54,7 @@ class DestinationCommonRoom(Destination):
                     api: data.get(source) for (source, api) in member_fields
                 })
                 for (source, field) in custom_fields:
-                    attempts = 10
+                    attempts = 7
                     for n in range(0, attempts + 1):
                         try:
                             sleep(2 * n)
@@ -63,13 +63,12 @@ class DestinationCommonRoom(Destination):
                         except HTTPError as e:
                             # Common Room raises 404 not found soon after
                             # creating a member, so retry for a bit. After all
-                            # attempts (110s), log the issue and move on.
-                            if n == attempts:
-                                log = AirbyteLogMessage(
-                                    level=Level.WARN,
-                                    message=f"Gave up setting custom field {repr(field)} after {n} attempts.",
-                                    stack_trace="".join(TracebackException.from_exception(e).format()))
-                                yield AirbyteMessage(type=Type.LOG, log=log)
+                            # attempts (56s), move on.
+                            log = AirbyteLogMessage(
+                                level=Level.WARN,
+                                message=f"Error setting custom field {repr(field)} (attempt {n+1}).",
+                                stack_trace="".join(TracebackException.from_exception(e).format()))
+                            yield AirbyteMessage(type=Type.LOG, log=log)
 
     def check(self, logger: AirbyteLogger, config: Mapping[str, Any]) -> AirbyteConnectionStatus:
         """
