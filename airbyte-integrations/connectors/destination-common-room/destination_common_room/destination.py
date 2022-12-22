@@ -20,7 +20,6 @@ class DestinationCommonRoom(Destination):
         self, config: Mapping[str, Any], configured_catalog: ConfiguredAirbyteCatalog, input_messages: Iterable[AirbyteMessage]
     ) -> Iterable[AirbyteMessage]:
         """
-        TODO
         Reads the input stream of messages, config, and catalog to write data to the destination.
 
         This method returns an iterable (typically a generator of AirbyteMessages via yield) containing state messages received
@@ -59,7 +58,7 @@ class DestinationCommonRoom(Destination):
                     for n in range(0, attempts + 1):
                         try:
                             sleep(2 * n)
-                            client.memberField(email, field, data[source])
+                            client.memberField(email, field, data.get(source))
                             break
                         except HTTPError as e:
                             # Common Room raises 404 not found soon after
