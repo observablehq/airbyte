@@ -64,11 +64,12 @@ class DestinationCommonRoom(Destination):
                             # Common Room raises 404 not found soon after
                             # creating a member, so retry for a bit. After all
                             # attempts (56s), move on.
-                            log = AirbyteLogMessage(
-                                level=Level.WARN,
-                                message=f"Error setting custom field {repr(field)} (attempt {n+1}).",
-                                stack_trace="".join(TracebackException.from_exception(e).format()))
-                            yield AirbyteMessage(type=Type.LOG, log=log)
+                            if n > 1:
+                                log = AirbyteLogMessage(
+                                    level=Level.WARN,
+                                    message=f"Error setting custom field {repr(field)} (attempt {n+1}).",
+                                    stack_trace="".join(TracebackException.from_exception(e).format()))
+                                yield AirbyteMessage(type=Type.LOG, log=log)
 
     def check(self, logger: AirbyteLogger, config: Mapping[str, Any]) -> AirbyteConnectionStatus:
         """
