@@ -50,9 +50,21 @@ class DestinationCommonRoom(Destination):
             elif message.type == Type.RECORD:
                 data = message.record.data
                 email = data[email_field]
-                client.member(email, {
-                    api: data.get(source) for (source, api) in member_fields
-                })
+                attempts = 3
+                for n in range(0, attempts + 1):
+                    try:
+                        sleep(2 * n)
+                        client.member(email, {
+                            api: data.get(source) for (source, api) in member_fields
+                        })
+                        break
+                    except HTTPError as e:
+                        if n > 1:
+                            log = AirbyteLogMessage(
+                                level=Level.WARN,
+                                message=f"Error adding user (attempt {n+1}).",
+                                stack_trace="".join(TracebackException.from_exception(e).format()))
+                            yield AirbyteMessage(type=Type.LOG, log=log)
                 for (source, field) in custom_fields:
                     attempts = 7
                     for n in range(0, attempts + 1):
