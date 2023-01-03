@@ -41,7 +41,7 @@ class DestinationCommonRoom(Destination):
         client = CommonRoomClient(config["bearer_token"])
         existing = {f["name"]: f for f in client.fields()}
         custom_fields = [
-            (f["source"], existing[f["api"]]) for f in config["custom_fields"]
+            # (f["source"], existing[f["api"]]) for f in config["custom_fields"]
         ]
 
         for message in input_messages:
