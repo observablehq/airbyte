@@ -19,15 +19,20 @@ class CommonRoomClient:
         """
         return self._request("GET", "members/customFields")
 
-    def member(self, email: str, data: Mapping[str, Any]):
+    def member(self, email: str, data: Mapping[str, Any] = None):
         """
-        API docs: https://api.commonroom.io/docs/community.html#operation/createOrUpdateCommunityMember
+        API docs:
+          GET https://api.commonroom.io/docs/community.html#tag/Members/paths/~1members~1:query/get
+          POST https://api.commonroom.io/docs/community.html#operation/createOrUpdateCommunityMember
         """
-        return self._request("POST", "members", dict({
-            "socials": [{"type": "email", "value": email}],
-            "source": "Recurring import"},
-            **data
-        ))
+        if data == None:
+            return self._request("GET", "members", params={"email": email})
+        else:
+            return self._request("POST", "members", dict({
+                "socials": [{"type": "email", "value": email}],
+                "source": "Recurring import"},
+                **data
+            ))
 
     def memberField(self, email: str, field: Mapping[str, Any], value: Any):
         """
@@ -48,13 +53,13 @@ class CommonRoomClient:
         return {"Authorization": f"Bearer {self.bearer_token}"} if self.bearer_token else {}
 
     def _request(
-        self, http_method: str, path: str, json: Mapping[str, Any] = None
+        self, http_method: str, path: str, json: Mapping[str, Any] = None, params: Mapping[str, Any] = None
     ) -> requests.Response:
         url = f"{self.base_url}/{path}"
         headers = {"Accept": "application/json", **self._request_headers()}
 
         response = requests.request(
-            method=http_method, url=url, headers=headers, json=json)
+            method=http_method, url=url, headers=headers, json=json, params=params)
 
         if not response.ok:
             raise HTTPError(response.text, response=response)
