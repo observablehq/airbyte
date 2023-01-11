@@ -40,8 +40,6 @@ class CommonRoomClient:
         field comes from fields()
         """
         if value:
-            # if field["type"] == "date":
-            #     value = parser.parse(value).date().isoformat()
             return self._request("POST", "members/customFields", {
                 "socialType": "email",
                 "value": email,
