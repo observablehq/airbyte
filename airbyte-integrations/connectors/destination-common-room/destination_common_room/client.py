@@ -4,6 +4,7 @@
 
 from typing import Any, Mapping
 from requests.exceptions import HTTPError
+from time import sleep
 import requests
 
 
@@ -28,24 +29,39 @@ class CommonRoomClient:
         if data == None:
             return self._request("GET", "members", params={"email": email})
         else:
-            return self._request("POST", "members", dict({
-                "socials": [{"type": "email", "value": email}],
-                "source": "Recurring import"},
-                **data
-            ))
+            for n in range(0, 3):
+                try:
+                    sleep(2 * n)
+                    return self._request("POST", "members", dict({
+                        "socials": [{"type": "email", "value": email}],
+                        "source": "Recurring import"},
+                        **data
+                    ))
+                except HTTPError:
+                    if n == 2:
+                        raise
 
     def memberField(self, email: str, field: Mapping[str, Any], value: Any):
         """
         API docs: https://api.commonroom.io/docs/community.html#operation/setMemberCustomFieldValue
         field comes from fields()
+
+        Common Room raises 404 not found soon after creating a member, so retry
+        for a bit.
         """
         if value:
-            return self._request("POST", "members/customFields", {
-                "socialType": "email",
-                "value": email,
-                "customFieldId": field["id"],
-                "customFieldValue": {"type": field["type"], "value": value}
-            })
+            for n in range(0, 3):
+                try:
+                    sleep(2 * n)
+                    return self._request("POST", "members/customFields", {
+                        "socialType": "email",
+                        "value": email,
+                        "customFieldId": field["id"],
+                        "customFieldValue": {"type": field["type"], "value": value}
+                    })
+                except HTTPError:
+                    if n == 2:
+                        raise
 
     def _request_headers(self) -> Mapping[str, Any]:
         return {"Authorization": f"Bearer {self.bearer_token}"} if self.bearer_token else {}
