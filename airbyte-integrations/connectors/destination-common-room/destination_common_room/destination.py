@@ -68,23 +68,23 @@ class DestinationCommonRoom(Destination):
                                     message=f"Error adding user (attempt {n+1}).",
                                     stack_trace="".join(TracebackException.from_exception(e).format()))
                                 yield AirbyteMessage(type=Type.LOG, log=log)
-            for (source, field) in custom_fields:
-                attempts = 7
-                for n in range(0, attempts + 1):
-                    try:
-                        sleep(2 * n)
-                        client.memberField(email, field, data.get(source))
-                        break
-                    except HTTPError as e:
-                        # Common Room raises 404 not found soon after
-                        # creating a member, so retry for a bit. After all
-                        # attempts (56s), move on.
-                        if n > 1:
-                            log = AirbyteLogMessage(
-                                level=Level.WARN,
-                                message=f"Error setting custom field {repr(field)} (attempt {n+1}).",
-                                stack_trace="".join(TracebackException.from_exception(e).format()))
-                            yield AirbyteMessage(type=Type.LOG, log=log)
+                for (source, field) in custom_fields:
+                    attempts = 7
+                    for n in range(0, attempts + 1):
+                        try:
+                            sleep(2 * n)
+                            client.memberField(email, field, data.get(source))
+                            break
+                        except HTTPError as e:
+                            # Common Room raises 404 not found soon after
+                            # creating a member, so retry for a bit. After all
+                            # attempts (56s), move on.
+                            if n > 1:
+                                log = AirbyteLogMessage(
+                                    level=Level.WARN,
+                                    message=f"Error setting custom field {repr(field)} (attempt {n+1}).",
+                                    stack_trace="".join(TracebackException.from_exception(e).format()))
+                                yield AirbyteMessage(type=Type.LOG, log=log)
 
     def check(self, logger: AirbyteLogger, config: Mapping[str, Any]) -> AirbyteConnectionStatus:
         """
