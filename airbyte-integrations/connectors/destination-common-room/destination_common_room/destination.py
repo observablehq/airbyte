@@ -24,7 +24,7 @@ class DestinationCommonRoom(Destination):
             for (source, api) in client.member_fields:
                 if data.get(source) and response.get(api) != data.get(source):
                     raise HTTPError(f"Mismatch for {source}")
-        except HTTPError:  # GET failed, so we create the member
+        except (ValueError, HTTPError):  # GET failed, so we create the member
             try:
                 client.member(email, {
                     api: data.get(source) for (source, api) in client.member_fields
