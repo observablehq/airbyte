@@ -63,7 +63,7 @@ class DestinationCommonRoom(Destination):
                             message=f"Error adding user ({email}).",
                             stack_trace="".join(TracebackException.from_exception(e).format()))
                         yield AirbyteMessage(type=Type.LOG, log=log)
-                        break  # Can't create member, so skip custom fields
+                        continue  # Can't create member, so skip custom fields
                 for (source, field) in custom_fields:
                     try:
                         client.memberField(email, field, data.get(source))
