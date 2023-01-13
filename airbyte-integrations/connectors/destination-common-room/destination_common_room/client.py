@@ -3,6 +3,7 @@
 #
 
 from typing import Any, Mapping
+
 from requests.exceptions import HTTPError
 from time import sleep
 import requests
@@ -11,8 +12,17 @@ import requests
 class CommonRoomClient:
     base_url = "https://api.commonroom.io/community/v1/"
 
-    def __init__(self, bearer_token: str):
-        self.bearer_token = bearer_token
+    def __init__(self, config: Mapping[str, Any]):
+        self.bearer_token = config["bearer_token"]
+        self.email_field = config["email_field"]
+        self.member_fields = [
+            (f["source"], f["api"]) for f in config["member_fields"]
+        ]
+
+        existing = {f["name"]: f for f in self.fields()}
+        self.custom_fields = [
+            (f["source"], existing[f["api"]]) for f in config["custom_fields"]
+        ]
 
     def fields(self):
         """

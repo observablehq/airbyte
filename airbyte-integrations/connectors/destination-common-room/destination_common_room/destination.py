@@ -3,19 +3,51 @@
 #
 
 
-import json
-from typing import Any, Iterable, Mapping, Optional
+from typing import Any, Iterable, Mapping
 
 from airbyte_cdk import AirbyteLogger
 from airbyte_cdk.destinations import Destination
 from airbyte_cdk.models import AirbyteConnectionStatus, AirbyteMessage, AirbyteLogMessage, Level, ConfiguredAirbyteCatalog, Status, Type
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from destination_common_room.client import CommonRoomClient
-from time import sleep
 from requests.exceptions import HTTPError
+from time import sleep
 from traceback import TracebackException
 
 
 class DestinationCommonRoom(Destination):
+    def do_write(self, message: AirbyteMessage, client: CommonRoomClient):
+        data = message.record.data
+        email = data[client.email_field]
+        try:
+            [response] = client.member(email)
+            for (source, api) in client.member_fields:
+                if data.get(source) and response.get(api) != data.get(source):
+                    raise HTTPError(f"Mismatch for {source}")
+        except HTTPError:  # GET failed, so we create the member
+            try:
+                client.member(email, {
+                    api: data.get(source) for (source, api) in client.member_fields
+                })
+            except HTTPError as e:
+                log = AirbyteLogMessage(
+                    level=Level.WARN,
+                    message=f"Error adding user ({email}).",
+                    stack_trace="".join(TracebackException.from_exception(e).format()))
+                # Can't create member, so skip custom fields
+                return [AirbyteMessage(type=Type.LOG, log=log)]
+        logs = []
+        for (source, field) in client.custom_fields:
+            try:
+                client.memberField(email, field, data.get(source))
+            except HTTPError as e:
+                log = AirbyteLogMessage(
+                    level=Level.WARN,
+                    message=f"Error setting custom field {repr(field)} ({email}).",
+                    stack_trace="".join(TracebackException.from_exception(e).format()))
+                logs.append(AirbyteMessage(type=Type.LOG, log=log))
+        return logs
+
     def write(
         self, config: Mapping[str, Any], configured_catalog: ConfiguredAirbyteCatalog, input_messages: Iterable[AirbyteMessage]
     ) -> Iterable[AirbyteMessage]:
@@ -33,49 +65,24 @@ class DestinationCommonRoom(Destination):
         :param input_messages: The stream of input messages received from the source
         :return: Iterable of AirbyteStateMessages wrapped in AirbyteMessage structs
         """
-        email_field = config["email_field"]
-        member_fields = [
-            (f["source"], f["api"]) for f in config["member_fields"]
-        ]
+        with ThreadPoolExecutor(max_workers=30) as executor:
+            client = CommonRoomClient(config)
+            futures = []
 
-        client = CommonRoomClient(config["bearer_token"])
-        existing = {f["name"]: f for f in client.fields()}
-        custom_fields = [
-            (f["source"], existing[f["api"]]) for f in config["custom_fields"]
-        ]
+            for message in input_messages:
+                if message.type == Type.STATE:
+                    for result in as_completed(futures):
+                        for log in result.result():
+                            yield log
+                    futures = []
+                    yield message
+                elif message.type == Type.RECORD:
+                    futures.append(executor.submit(
+                        self.do_write, message, client))
 
-        for message in input_messages:
-            if message.type == Type.STATE:
-                yield message
-            elif message.type == Type.RECORD:
-                data = message.record.data
-                email = data[email_field]
-                try:
-                    [response] = client.member(email)
-                    for (source, api) in member_fields:
-                        if data.get(source) and response.get(api) != data.get(source):
-                            raise HTTPError(f"Mismatch for {source}")
-                except HTTPError:  # GET failed, so we create the member
-                    try:
-                        client.member(email, {
-                            api: data.get(source) for (source, api) in member_fields
-                        })
-                    except HTTPError as e:
-                        log = AirbyteLogMessage(
-                            level=Level.WARN,
-                            message=f"Error adding user ({email}).",
-                            stack_trace="".join(TracebackException.from_exception(e).format()))
-                        yield AirbyteMessage(type=Type.LOG, log=log)
-                        continue  # Can't create member, so skip custom fields
-                for (source, field) in custom_fields:
-                    try:
-                        client.memberField(email, field, data.get(source))
-                    except HTTPError as e:
-                        log = AirbyteLogMessage(
-                            level=Level.WARN,
-                            message=f"Error setting custom field {repr(field)} ({email}).",
-                            stack_trace="".join(TracebackException.from_exception(e).format()))
-                        yield AirbyteMessage(type=Type.LOG, log=log)
+            for result in as_completed(futures):
+                for log in result.result():
+                    yield log
 
     def check(self, logger: AirbyteLogger, config: Mapping[str, Any]) -> AirbyteConnectionStatus:
         """
