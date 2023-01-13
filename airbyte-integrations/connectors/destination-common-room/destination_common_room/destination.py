@@ -51,7 +51,10 @@ class DestinationCommonRoom(Destination):
                 data = message.record.data
                 email = data[email_field]
                 try:
-                    client.member(email)
+                    [response] = client.member(email)
+                    for (source, api) in member_fields:
+                        if data.get(source) and response.get(api) != data.get(source):
+                            raise HTTPError(f"Mismatch for {source}")
                 except HTTPError:  # GET failed, so we create the member
                     try:
                         client.member(email, {
