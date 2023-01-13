@@ -97,7 +97,7 @@ class DestinationCommonRoom(Destination):
         :return: AirbyteConnectionStatus indicating a Success or Failure
         """
         try:
-            client = CommonRoomClient(config["bearer_token"])
+            client = CommonRoomClient(config)
             existing = set(f["name"] for f in client.fields())
             configured = set(f["api"] for f in config["custom_fields"])
             misconfigured = configured - existing
