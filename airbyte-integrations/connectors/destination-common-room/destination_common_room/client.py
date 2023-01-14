@@ -39,9 +39,9 @@ class CommonRoomClient:
         if data == None:
             return self._request("GET", "members", params={"email": email})
         else:
-            for n in range(0, 3):
+            for n in range(0, 5):
                 try:
-                    sleep(2 * n)
+                    sleep(3 * n)
                     return self._request("POST", "members", dict({
                         "socials": [{"type": "email", "value": email}],
                         "source": "Recurring import"},
@@ -60,9 +60,9 @@ class CommonRoomClient:
         for a bit.
         """
         if value:
-            for n in range(0, 3):
+            for n in range(0, 5):
                 try:
-                    sleep(2 * n)
+                    sleep(3 * n)
                     return self._request("POST", "members/customFields", {
                         "socialType": "email",
                         "value": email,
@@ -86,6 +86,7 @@ class CommonRoomClient:
             method=http_method, url=url, headers=headers, json=json, params=params)
 
         if not response.ok:
-            raise HTTPError(response.text, response=response)
+            raise HTTPError(
+                f"{response.status_code} {response.text}", response=response)
 
         return response.json()

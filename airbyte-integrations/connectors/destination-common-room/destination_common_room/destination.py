@@ -23,7 +23,7 @@ class DestinationCommonRoom(Destination):
             [response] = client.member(email)
             for (source, api) in client.member_fields:
                 if data.get(source) and response.get(api) != data.get(source):
-                    raise HTTPError(f"Mismatch for {source}")
+                    raise HTTPError(f"Mismatch for {source} ({message})")
         except (ValueError, HTTPError):  # GET failed, so we create the member
             try:
                 client.member(email, {
@@ -32,7 +32,7 @@ class DestinationCommonRoom(Destination):
             except HTTPError as e:
                 log = AirbyteLogMessage(
                     level=Level.WARN,
-                    message=f"Error adding user ({email}).",
+                    message=f"Error adding user ({message}).",
                     stack_trace="".join(TracebackException.from_exception(e).format()))
                 # Can't create member, so skip custom fields
                 return [AirbyteMessage(type=Type.LOG, log=log)]
@@ -43,7 +43,7 @@ class DestinationCommonRoom(Destination):
             except HTTPError as e:
                 log = AirbyteLogMessage(
                     level=Level.WARN,
-                    message=f"Error setting custom field {repr(field)} ({email}).",
+                    message=f"Error setting custom field {repr(field)} ({message}).",
                     stack_trace="".join(TracebackException.from_exception(e).format()))
                 logs.append(AirbyteMessage(type=Type.LOG, log=log))
         return logs
@@ -65,7 +65,7 @@ class DestinationCommonRoom(Destination):
         :param input_messages: The stream of input messages received from the source
         :return: Iterable of AirbyteStateMessages wrapped in AirbyteMessage structs
         """
-        with ThreadPoolExecutor(max_workers=30) as executor:
+        with ThreadPoolExecutor(max_workers=100) as executor:
             client = CommonRoomClient(config)
             futures = []
 
